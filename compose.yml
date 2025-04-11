@@ -1,0 +1,71 @@
+services:
+
+  server :
+    ports :
+    - 443:443
+    image : serv_img
+    container_name : serv_ctnr
+    stdin_open : true
+    tty : true
+    depends_on :
+     - website
+    volumes :
+      - ./serv/default.conf:/etc/nginx/conf.d/default.conf
+      - ./serv/nginx.key:/ssl/nginx.key
+      - ./serv/nginx.crt:/ssl/nginx.crt
+      - web_vol:/serv
+    networks :
+      - network_1
+    restart: always
+
+  database:
+    image: db_img
+    container_name : db_ctnr
+    stdin_open : true
+    tty : true
+    environment:
+    - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+    - MYSQL_USER=${MYSQL_USER}
+    - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    - MYSQL_DATABASE=${MYSQL_DATABASE}
+    volumes :
+      - ./db/my.cnf:/etc/mysql/mariadb.conf.d/99-bind.cnf
+      - ./db/init.sh:/usr/local/bin/init_db.sh
+      - db_vol:/var/lib/mysql
+    networks :
+      - network_1
+    restart: always
+
+  website:
+    image: site_img
+    container_name : site_ctnr
+    stdin_open : true
+    tty : true
+    volumes :
+      - ./site/wp-config.php:/website/wp-config.php
+      - ./site/www.conf:/etc/php/8.1/fpm/pool.d/www.conf
+      - web_vol:/website
+    depends_on :
+     - database
+    networks :
+      - network_1
+    restart: always
+
+volumes :
+  db_vol:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${HOME}/data/db_vol
+      o: bind
+  web_vol:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${HOME}/data/web_vol
+      o: bind
+
+networks :
+  network_1:
+    driver : bridge
+
