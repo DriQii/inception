@@ -67,7 +67,7 @@ services:
       condition : service_healthy
     networks :
       - network_1
-
+    restart : always
 
 volumes :
   db_vol:

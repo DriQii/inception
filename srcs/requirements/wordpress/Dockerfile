@@ -1,4 +1,4 @@
-FROM debian:11
+FROM debian:bullseye
 EXPOSE 9000
 WORKDIR /website
 ENV DEBIAN_FRONTEND=noninteractive

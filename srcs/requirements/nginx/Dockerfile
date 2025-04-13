@@ -1,4 +1,4 @@
-FROM debian:11
+FROM debian:bullseye
 EXPOSE 443
 WORKDIR /serv
 RUN apt update
