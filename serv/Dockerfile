@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM debian:11
 EXPOSE 443
 WORKDIR /serv
 RUN apt update

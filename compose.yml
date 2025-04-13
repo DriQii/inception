@@ -1,6 +1,9 @@
-services:
 
+services:
   server :
+    env_file:
+    - .env
+    build: ./serv
     ports :
     - 443:443
     image : serv_img
@@ -16,9 +19,13 @@ services:
       - web_vol:/serv
     networks :
       - network_1
-    restart: always
+    restart : always
+
 
   database:
+    env_file:
+    - .env
+    build: ./db
     image: db_img
     container_name : db_ctnr
     stdin_open : true
@@ -30,26 +37,37 @@ services:
     - MYSQL_DATABASE=${MYSQL_DATABASE}
     volumes :
       - ./db/my.cnf:/etc/mysql/mariadb.conf.d/99-bind.cnf
-      - ./db/init.sh:/usr/local/bin/init_db.sh
+      - ./db/init.sh:/usr/local/bin/init.sh
       - db_vol:/var/lib/mysql
     networks :
       - network_1
-    restart: always
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-u${MYSQL_USER}", "-p${MYSQL_PASSWORD}"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    restart : always
+
 
   website:
+    env_file:
+    - .env
+    build: ./site
     image: site_img
     container_name : site_ctnr
     stdin_open : true
     tty : true
     volumes :
       - ./site/wp-config.php:/website/wp-config.php
-      - ./site/www.conf:/etc/php/8.1/fpm/pool.d/www.conf
+      - ./site/www.conf:/etc/php/7.4/fpm/pool.d/www.conf
+      - ./site/init.sh:/usr/local/bin/init.sh
       - web_vol:/website
     depends_on :
-     - database
+     database :
+      condition : service_healthy
     networks :
       - network_1
-    restart: always
+
 
 volumes :
   db_vol:
